@@ -14,5 +14,38 @@
     Take a look at the <code>src/pages/</code> directory to add or change tabs,
     update any existing page or create new pages.
   </p>
+  <h1>{{S61_number}}</h1>
+	<section class="status"></section>
+	<section class="results"></section>
+  <ul>
+    <li *ngFor="let row of mylistResult" (click)="onSelect(row)"><span>{{row.id}} - {{row.name}}</span></li>
+  </ul>
+  <ion-list [hidden]="!connnectToSolace">
+
+    <!-- <ion-item>
+      <ion-label stacked>帳號</ion-label>
+      <ion-input [(ngModel)]="id" type="text"></ion-input>
+    </ion-item>
+  
+    <ion-item>
+      <ion-label stacked>密碼</ion-label>
+      <ion-input [(ngModel)]="password" type="password"></ion-input>
+    </ion-item> -->
+  
+    <ion-item>
+      <ion-label stacked>輸入代號</ion-label>
+      <ion-input [(ngModel)]="S61_number" type="text"></ion-input>
+    </ion-item>
+  
+  </ion-list>
+  
+  <div padding [hidden]="!connnectToSolace">
+    <!-- <button ion-button color="light" (click)="onSubmit()">登入</button> -->
+    <button ion-button color="light" (click)="getData_S61()">取得資料</button>
+  </div>
+  <div padding [hidden]="connnectToSolace">
+    <button ion-button color="light" (click)="startConnect()">開始連線</button>
+  </div>
+
   <div id="container" style="height: 400px; margin: auto; min-width: 310px; max-width: 600px"></div>
 </ion-content>
