@@ -4,6 +4,10 @@ import * as Highcharts from 'highcharts';
 import * as HighchartsMore from 'highcharts/highcharts-more';
 import * as SolidGauge from 'highcharts/modules/solid-gauge';
 
+declare var Solace;
+declare var cbDynamic;
+declare var $;
+
 HighchartsMore(Highcharts);
 SolidGauge(Highcharts);
 
@@ -30,7 +34,6 @@ export class HomePage {
   constructor(public navCtrl: NavController, private alertCtrl: AlertController) {
 
   }
-  
   connnectToSolace=false;
   startConnect (){
     this.connnectToSolace=true;
@@ -47,6 +50,7 @@ export class HomePage {
     Solace.Connect();
   }
   
+
   S61_number = '18083';
   getData_S61() {
     if(this.S61_number==''){

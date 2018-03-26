@@ -5,7 +5,7 @@
 </ion-header>
 
 <ion-content padding>
-  <h2>測試首頁~</h2>
+  <h2>測試首頁~~~!</h2>
   <p>
     This starter project comes with simple tabs-based layout for apps
     that are going to primarily use a Tabbed UI.
@@ -15,11 +15,7 @@
     update any existing page or create new pages.
   </p>
   <h1>{{S61_number}}</h1>
-	<section class="status"></section>
 	<section class="results"></section>
-  <ul>
-    <li *ngFor="let row of mylistResult" (click)="onSelect(row)"><span>{{row.id}} - {{row.name}}</span></li>
-  </ul>
   <ion-list [hidden]="!connnectToSolace">
 
     <!-- <ion-item>
@@ -44,8 +40,9 @@
     <button ion-button color="light" (click)="getData_S61()">取得資料</button>
   </div>
   <div padding [hidden]="connnectToSolace">
-    <button ion-button color="light" (click)="startConnect()">開始連線</button>
+    <button ion-button color="light" (click)="startConnect()">[開始連線]</button>
   </div>
+  <section class="status"></section>
 
   <div id="container" style="height: 400px; margin: auto; min-width: 310px; max-width: 600px"></div>
 </ion-content>
