@@ -1,11 +1,45 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      About
+      {{title}}
     </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
+  <h2>取得歷史資料</h2>
+ 
+
+	<div id="content">
+		<table>
+				<tr>
+					<td>成交</td>
+					<td>漲跌</td>
+					<td>幅度</td>
+					<td>昨收</td>
+					<td>開盤</td>
+					<td>最高</td>
+					<td>最低</td>
+					<td>總量</td>
+				</tr>
+				<tr>
+					<td id="DealPrice">-</td>
+					<td id="Movement">-</td>
+					<td id="Range">-</td>
+					<td id="YSDClose">-</td>
+					<td id="CbOpen">-</td>
+					<td id="CbHigh">-</td>
+					<td id="CbLow">-</td>
+					<td id="CbTotal">-</td>
+				</tr>
+        </table>
+	</div>
+  
+  <div padding>
+    <!-- <button ion-button color="light" (click)="onSubmit()">登入</button> -->
+    <button ion-button color="light" (click)="getData_S27()">取得資料</button>
+  </div>
+	<section class="results"></section>
+  <section class="status"></section>
 
 </ion-content>

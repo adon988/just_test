@@ -51,7 +51,7 @@ export class HomePage {
   }
   
 
-  S61_number = '18083';
+  S61_number = '45511';
   getData_S61() {
     if(this.S61_number==''){
         let alert = this.alertCtrl.create({
