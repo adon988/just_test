@@ -39,10 +39,10 @@
     <!-- <button ion-button color="light" (click)="onSubmit()">登入</button> -->
     <button ion-button color="light" (click)="getData_S61()">取得資料</button>
   </div>
-  <div padding >
+  <div padding  [hidden]="connnectToSolace">
     <button ion-button color="light" (click)="startConnect()">[連線]</button>
   </div>
   <section class="status"></section>
 
-  <div id="container" style="height: 400px; margin: auto; min-width: 310px; max-width: 600px"></div>
+  <!-- <div id="container" style="height: 400px; margin: auto; min-width: 310px; max-width: 600px"></div> -->
 </ion-content>

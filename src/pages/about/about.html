@@ -8,38 +8,48 @@
 
 <ion-content padding>
   <h2>取得歷史資料</h2>
- 
-
-	<div id="content">
-		<table>
-				<tr>
-					<td>成交</td>
-					<td>漲跌</td>
-					<td>幅度</td>
-					<td>昨收</td>
-					<td>開盤</td>
-					<td>最高</td>
-					<td>最低</td>
-					<td>總量</td>
-				</tr>
-				<tr>
-					<td id="DealPrice">-</td>
-					<td id="Movement">-</td>
-					<td id="Range">-</td>
-					<td id="YSDClose">-</td>
-					<td id="CbOpen">-</td>
-					<td id="CbHigh">-</td>
-					<td id="CbLow">-</td>
-					<td id="CbTotal">-</td>
-				</tr>
-        </table>
-	</div>
-  
   <div padding>
-    <!-- <button ion-button color="light" (click)="onSubmit()">登入</button> -->
-    <button ion-button color="light" (click)="getData_S27()">取得資料</button>
+		<div class="group_taiex_highcharts">
+			<div id="taiex_trend_info"><span class="taiex_datetime">{{taiex_datetime}}</span> 價格:<span class="taiex_price">{{taiex_price}}</span></div>
+				<div id="taiex_trend_charts" style="height: 200px; min-width: 256px; "></div>
+				<div id="taiex_volume_charts" style="height: 150px; min-width: 256px; "></div>
+		</div>
+		<div id="content">
+			<table>
+					<tr>
+						<td>成交</td>
+						<td>漲跌</td>
+						<td>幅度</td>
+						<td>昨收</td>
+					</tr>
+					<tr>
+						<td id="DealPrice">{{DealPrice}}</td>
+						<td id="Movement">{{Movement}}</td>
+						<td id="Range">{{Range}}</td>
+						<td id="YSDClose">{{YSDClose}}</td>
+					</tr>
+					<tr>
+						<td>開盤</td>
+						<td>最高</td>
+						<td>最低</td>
+						<td>總量</td>
+					</tr>
+					<tr>
+						<td id="CbOpen">{{CbOpen}}</td>
+						<td id="CbHigh">{{CbHigh}}</td>
+						<td id="CbLow">{{CbLow}}</td>
+						<td id="CbTotal">{{CbTotal}}</td>
+					</tr>
+					</table>
+		</div>
+	</div>
+	<div padding  [hidden]="!connnectToSolace">
+		<button ion-button color="light" (click)="getData_S27()">取得資料</button>
+	</div>
+  <div padding  [hidden]="connnectToSolace">
+    <button ion-button color="light" (click)="startConnect()">[連線]</button>
   </div>
-	<section class="results"></section>
   <section class="status"></section>
+	<!-- <div id="about_container" style="height: 400px; margin: auto; min-width: 310px; max-width: 600px"></div> -->
 
 </ion-content>

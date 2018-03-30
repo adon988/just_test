@@ -1,4 +1,6 @@
 "use strict";
+var ng_p_tg = {};
+var about_tg = {};
 
 var Solace = Solace || {};
 function PadLeft(str, lenght) {
@@ -19,7 +21,6 @@ var UI = UI || {};
 var Wdata = [];
 var WdataSize = [];
 var S43data_ALL = [];
-var topicS43Finish = false;
 var topicS27Finish = false;
 var topicS43Finish_Target = false;
 var InitialTable_tag = false;
@@ -27,12 +28,6 @@ var S60_cbInitialData = [];
 var ProductName, LimitUp, LimitDown, YesterdayPrice;
 var DigitNum = "";
 var Max, Min, Rank;
-//Draw
-var MarketSize = [];
-var WdataSize_High = [];
-var MarketSize_Total = [];
-var SizeNum = 0;
-var Total_Size = 0;
 
 //設定cookies
 function setCookie(cookieName, cookieValue, extime) {
@@ -65,66 +60,6 @@ function formatFloat(num, pos) {
     return Math.round(num * size) / size;
 }
 
-//畫走勢圖
-function drawTrend(Status, Data_Source, datetime, cbID) {
-    // console.log(Data_Source);
-}
-
-//畫走勢圖(成交量)
-function drawTrendSize(Status, Data_Source, datetime) {
-    // console.log(Data_Source);
-    MarketSize.push([Data_Source.Ptr, Data_Source.Time, Data_Source.Size, Data_Source.Price]);
-    if (MarketSize[MarketSize.length - 1][1] < 90000) {
-        MarketSize.pop().sort();
-        if (MarketSize.length >= 2) {
-            if (MarketSize[MarketSize.length - 1][0] == MarketSize[MarketSize.length - 2][0]) {
-                MarketSize.pop();
-            }
-        }
-    }
-}
-//大盤走勢圖資料顯示
-function TrendContent(Data_Source, YSDClose, Status) {
-    var range, S43_High, S43_Low, S43_Open;
-    WdataSize_High.push(Data_Source.Price);
-    MarketSize_Total.push(Data_Source.Size);
-    
-    if (Status == 'unsyn' && Data_Source.Time < '133000') {
-        return;
-    }
-
-    // console.log(Data_Source);
-    // console.log(Status);
-    S43_Open = (MarketSize.length > 0)?MarketSize[0][3]:0;
-    range = (parseFloat(Data_Source.Price) - parseFloat(YSDClose)) / parseFloat(YSDClose) * 100;
-    WdataSize_High.sort(function (a, b) { return b - a; });//陣列排序，將最高的放在最前面
-    S43_High = WdataSize_High[0];
-    WdataSize_High.sort(function (a, b) { return a - b; });//陣列排序，將最低的放在最前面
-    S43_Low = WdataSize_High[0];
-
-
-    //總量
-    if (SizeNum == 0) {
-        //將陣列WdataSize_High的值相加放入SizeNum裡
-        for (var i = 0; i <= MarketSize_Total.length - 1; i++) {
-            Total_Size = Total_Size + MarketSize_Total[i];
-        }
-        SizeNum = (Total_Size);
-    }
-    else {
-        SizeNum = (parseInt(SizeNum) + Data_Source.Size);
-    }
-
-    $("#DealPrice").text(Data_Source.Price);//成交
-    $("#Movement").text(Math.abs(formatFloat((Data_Source.Price - parseFloat(YSDClose)), 2)));//漲跌
-    $("#Range").text(Math.abs(formatFloat(range, 2))+'%');//幅度
-    $("#YSDClose").text(YSDClose);//昨收
-    $("#CbOpen").text(S43_Open);//開盤
-    $("#CbHigh").text(S43_High);//最高
-    $("#CbLow").text(S43_Low);//最低
-    $("#CbTotal").text(SizeNum);//總量
-}
-
 (function () {
     var FormatNumber = function (n) {
         n += "";
@@ -153,7 +88,9 @@ function TrendContent(Data_Source, YSDClose, Status) {
                     setCookie('type', value.ClassType, '60');
                     var TopicObject_W = Solace.CreateTopicObject('M' + MarketNo + '/' + value.ClassType + '/' + WarrID + '/S_43');
                     Solace.Unsubscribe(TopicObject_W);
-                    Solace.GetSolcacheData(TopicObject_W);
+                    // Solace.GetSolcacheData(TopicObject_W);
+                    /*呼叫 cbgetSolaceDataS43 ，再自定義完成 callback function*/
+                    cbgetSolaceDataS43(TopicObject_W);
                 }
             });
 
@@ -173,21 +110,26 @@ function TrendContent(Data_Source, YSDClose, Status) {
                 var datetime = Date.parse(date + ' ' + time);
                 datetime = datetime + 28800000;
                 if (topicS43Finish) {
-                    console.log('gogo')
                     if (CID == WarrID) {
-                        drawTrend('syn', s43, datetime, WarrID);
-                        drawTrendSize('syn', s43, datetime);
+                        //畫走勢圖
+                        TAIEX_Trend_setData('syn', s43, datetime, WarrID,'taiex_trend_charts');
+                        //畫走勢圖(成交量)
+                        TAIEX_TrendSize_setData('syn', s43, datetime);
                         if (WarrID === 'OTCA' || WarrID === 'TSEA') {
-                            TrendContent(s43, YesterdayPrice,'syn');
+                            //(3) 大盤最後走勢總計資料表
+                            TAIEX_Trend_Content(s43, YesterdayPrice,'syn');
                         }
                     }
                 }
                 else {
                     if (CID == WarrID) {
-                        drawTrend('unsyn', s43, datetime, WarrID);
-                        drawTrendSize('unsyn', s43, datetime);
+                        //畫走勢圖
+                        TAIEX_Trend_setData('unsyn', s43, datetime, WarrID,'taiex_trend_charts');
+                        //畫走勢圖(成交量)
+                        TAIEX_TrendSize_setData('unsyn', s43, datetime);
                         if (WarrID === 'OTCA' || WarrID === 'TSEA') {
-                            TrendContent(s43, YesterdayPrice,'unsyn');
+                            //(3) 大盤最後走勢總計資料表
+                            TAIEX_Trend_Content(s43, YesterdayPrice,'unsyn');
                         }
                     }
                 }
@@ -215,13 +157,6 @@ function TrendContent(Data_Source, YSDClose, Status) {
     var cacheSession = null;
 
     Solace.Config = {
-        //UserName: 'capital_cpweb',
-        //Password: 'k5W3LQq69G67R',
-        //VPN: 'capital_vpn',
-        ////URL: 'wss://srvsolace-dev.capital.com.tw:81',   //solace主機ip
-        //URL: 'https://srvsolace-dev.capital.com.tw:81',   //solace主機ip
-        ////URL: 'ws://srvsolace-tp.capital.com.tw',
-
         UserName: 'capital_web',
         Password: 'password',
         VPN: 'capital_vpn',
@@ -231,7 +166,7 @@ function TrendContent(Data_Source, YSDClose, Status) {
         OnConnected: 'OnConnected'
     }
 
-    /**要cache完成後的callback function*/
+     /**要cache完成後的callback function*/
     var sessionEventCb; // forward declaration
     var cacheRequestCb = function (requestID, cacheRequestResult, userObject) {
         try {
@@ -244,20 +179,20 @@ function TrendContent(Data_Source, YSDClose, Status) {
                 }
             }
             if (subcodeName == "NO_DATA") { //NO_DATA沒訂閱成功會顯示
+                console.log('無資料');
                 //$.notify("NO_DATA: " + userObject.Topic, { globalPosition: "bottom left", className: 'warn', });
             }
             AddLog("要cache完成 Subcode:" + subcodeName + " ,Topic:" + userObject.Topic);
         } catch (error) {
             AddErrorLog('cacheRequestCb ' + error.toString());
         }
-
-        //手動設置
         //這裡將 S_43 完成標記為 true
         if (userObject.Topic.indexOf("S_43") > -1) {
             topicS43Finish = true;
         }
     }
     this.GetMsgCountPerSec = function () {
+        //console.log('*** GetMsgCountPerSec');
         if (currentSecond != new Date().getSeconds())
             return 0;
         else
@@ -266,6 +201,7 @@ function TrendContent(Data_Source, YSDClose, Status) {
     var countPerSecond = 0, prevSecond = 0, currentSecond = 0;
     var MsgRxCallback = function (session, message) {
         try {
+            //console.log('*** MsgRxCallback(final)');
             currentSecond = new Date().getSeconds();
             if (currentSecond != prevSecond) {
                 prevSecond = currentSecond;
@@ -284,13 +220,13 @@ function TrendContent(Data_Source, YSDClose, Status) {
                 case 0x1a:
                     switch (msgData[1]) {        
                         case 0x02:
-                            console.log('UI.SetUI_G02');
-                            console.log(msgData);
+                            //console.log('UI.SetUI_G02');
+                            //console.log(msgData);
                             $(".results").text(msgData);
                             break;
                         case 0x03:
-                            console.log('UI.SetUI_G03');
-                            console.log(msgData);
+                            //console.log('UI.SetUI_G03');
+                            //console.log(msgData);
                             $(".results").text(msgData);
                             break;
                     }
@@ -305,23 +241,24 @@ function TrendContent(Data_Source, YSDClose, Status) {
                             UI.SetUI_S43(msgData, cacheStatus, CID);
                             break;
                         case 0x36:
-                            console.log('UI.SetUI_S36');
-                            console.log(msgData);
+                            //console.log('UI.SetUI_S36');
+                            //console.log(msgData);
                             $(".results").text(msgData);
                             break;
                         case 0x60:
-                            console.log('UI.SetUI_S60');
-                            console.log(msgData);
+                            //console.log('UI.SetUI_S60');
+                            //console.log(msgData);
                             $(".results").text(msgData);
                             break;
                         case 0x61:
-                            console.log('UI.SetUI_S61');
-                            console.log(msgData);
+                            //console.log('UI.SetUI_S61');
+                            //console.log(msgData);
+                            console.log('get s61');
                             $(".results").text(msgData);
                             break;
                         case 0x44:
-                            console.log('UI.SetUI_S44');
-                            console.log(msgData);
+                            //console.log('UI.SetUI_S44');
+                            //console.log(msgData);
                             $(".results").text(msgData);
                             break;
                     }
@@ -360,8 +297,8 @@ function TrendContent(Data_Source, YSDClose, Status) {
                     }
                     break;
                 case 0x05: //回報                   
-                        console.log('UI.SetUI_R03');
-                        console.log(msgData);                    
+                        //console.log('UI.SetUI_R03');
+                        //console.log(msgData);                    
                     break;
 
             }
@@ -372,6 +309,7 @@ function TrendContent(Data_Source, YSDClose, Status) {
     //-----------------------------------------------------------------002-----------------------------------------------------------------
     this.Connect = function () {
         try {
+            //console.log('*** this.Connect (1)');
             var mySessionProperties = new solace.SessionProperties();
             mySessionProperties.userName = Solace.Config.UserName;
             mySessionProperties.password = Solace.Config.Password;
@@ -383,6 +321,7 @@ function TrendContent(Data_Source, YSDClose, Status) {
                 mySessionProperties,
                 new solace.MessageRxCBInfo(MsgRxCallback, this),
                 new solace.SessionEventCBInfo(function (session, event) {
+                    //console.log('SessionEventCBInfo>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
                     AddLog("Session事件:" + event.toString());
                     Solace.SessionEventCb(session, event);
                     if (event.sessionEventCode == 1) {
@@ -402,11 +341,19 @@ function TrendContent(Data_Source, YSDClose, Status) {
         return solace.SolclientFactory.createTopic(topicString);
     }
     var requestID = 1;
-    this.GetSolcacheData = function (topicObject) {
+    this.GetSolcacheData = function (topicObject, callback, tg) {
         try {
-            cacheSession.sendCacheRequest(requestID, topicObject, true, solace.CacheLiveDataAction.FLOW_THRU,
-                new solace.CacheCBInfo(cacheRequestCb, { Topic: topicObject.m_name })
-            );
+            //Setting global tg to components tg
+            try {if(typeof(tg.home_tg)!='undefined'){home_tg = tg.home_tg;};}catch (error) {}
+            try {if(typeof(tg.about_tg)!='undefined'){about_tg = tg.about_tg;};}catch (error) {}
+            //if isset callback function, used this reset cacheCB function
+            if(typeof(callback)!='undefined'){
+                var solaceCacheCBInfo = new solace.CacheCBInfo(callback, { Topic: topicObject.m_name });
+            }else{
+                var solaceCacheCBInfo = new solace.CacheCBInfo(cacheRequestCb, { Topic: topicObject.m_name });
+            }
+
+            cacheSession.sendCacheRequest(requestID, topicObject, true, solace.CacheLiveDataAction.FLOW_THRU, solaceCacheCBInfo);
             requestID++;
         }
         catch (error) {
@@ -415,6 +362,7 @@ function TrendContent(Data_Source, YSDClose, Status) {
     }
     this.Unsubscribe = function (topicObject) {
         try {
+            //console.log('*** this.Unsubscribe(5)');
             mySession.unsubscribe(topicObject, true, "Unsubscribe_" + topicObject.m_name, 10000);
         } catch (error) {
             AddErrorLog('Unsubscribe ' + error.toString());
@@ -425,100 +373,301 @@ function TrendContent(Data_Source, YSDClose, Status) {
  * @param session
  * @param event
  */
+    this.connectStatus=false;
     this.SessionEventCb = function (session, event) {
-        console.log(event.toString());
         if (event.sessionEventCode === solace.SessionEventCode.UP_NOTICE) {
-            console.log("UP_NOTICE");
-            $(".status").append("<br/>UP_NOTICE");
+            //console.log("UP_NOTICE");
+            $(".status").prepend("<br/>UP_NOTICE");
             //ns.handle_sessionConnected();
         } else if (event.sessionEventCode === solace.SessionEventCode.SUBSCRIPTION_OK) {
             //ns.handle_subscriptionOperationSucceeded();
-            console.log("SUBSCRIPTION_OK");
-            $(".status").append("<br/>SUBSCRIPTION_OK");
+            //console.log("SUBSCRIPTION_OK");
+            try{ng_p_tg.connnectToSolace=true}catch (error) {}
+            this.connectStatus=true;
+            $(".status").prepend("<br/>SUBSCRIPTION_OK");
         } else if (event.sessionEventCode === solace.SessionEventCode.SUBSCRIPTION_ERROR) {
             //ns.handle_failure("Failed to add subscription", true);
-            console.log("SUBSCRIPTION_ERROR");
-            $(".status").append("<br/>SUBSCRIPTION_ER");
+            //console.log("SUBSCRIPTION_ERROR");
+            try{ng_p_tg.connnectToSolace=true}catch (error) {}
+            this.connectStatus=true;
+            $(".status").prepend("<br/>SUBSCRIPTION_ER");
         } else if (event.sessionEventCode === solace.SessionEventCode.LOGIN_FAILURE) {
             //ns.handle_failure("Failed to login to appliance:" + event.infoStr, true);
-            console.log("LOGIN_FAILURE");
-            $(".status").append("<br/>LOGIN_FAILURE");
+            //console.log("LOGIN_FAILURE");
+            try{ng_p_tg.connnectToSolace=false}catch (error) {}
+            this.connectStatus=false;
+            $(".status").prepend("<br/>LOGIN_FAILURE");
         } else if (event.sessionEventCode === solace.SessionEventCode.CONNECTING) {
-            //ns.utils_appendToConsole.log("Connecting...");
-            console.log("CONNECTING");
-            $(".status").append("<br/>CONNECTING");
+            ////ns.utils.prependToConsole.log("Connecting...");
+            //console.log("CONNECTING");
+            try{ng_p_tg.connnectToSolace=true}catch (error) {}
+            this.connectStatus=true;
+            $(".status").prepend("<br/>CONNECTING");
         } else if (event.sessionEventCode === solace.SessionEventCode.DISCONNECTED) {
             //ns.handle_failure("Session is disconnected", false);
-            console.log("DISCONNECTED");
-            $(".status").append("<br/>DISCONNECTED");
+            //console.log("DISCONNECTED");
+            try{ng_p_tg.connnectToSolace=false}catch (error) {}
+            this.connectStatus=false;
+            $(".status").prepend("<br/>DISCONNECTED");
         } else {
             //ns.handle_failure("Session failure!", false);
-            console.log("Session failure!");
-            $(".status").append("<br/>Session failure!");
+            //console.log("Session failure!");
+            try{ng_p_tg.connnectToSolace=false}catch (error) {}
+            this.connectStatus=false;
+            $(".status").prepend("<br/>Session failure!");
         }
     }
 }).apply(Solace);
 
 
-//初始化-CB清單、即時報價
-function SolaceInitial() {
-    var topicObject_S60 = Solace.CreateTopicObject('M201/S_60');
-    if (topicObject_S60 != null) {
-        Solace.Unsubscribe(topicObject_S60);
+	//畫走勢圖
+	var Wdata_High = [];
+	function TAIEX_Trend_setData(Status, Data_Source, datetime, cbID, chart_target) {
+		
+	    Wdata_High.push(Data_Source.Price);
+	    
+	    //提供最高與最低價給 TAIEX_Trend_Content
+	    //最高
+	    Wdata_High.sort(function (a, b) { return b - a; });
+	    var S43_High = Wdata_High[0];
+	    //最低
+	    Wdata_High.sort(function (a, b) { return a - b; });
+	    var S43_Low = Wdata_High[0];
+	
+	    if (Data_Source.Time >= '133500') { return; }
+	    if (Status === 'syn') {
+	    	//syn add single point
+            var Trendline = about_tg.TAIEX_trend_charts_Target.series[0].data[index];
+	        console.log('add point here! x='+datetime+', y='+Data_Source.Price);
+            if (datetime > Trendline.x) {
+                about_tg.TAIEX_trend_charts_addPoint({ x: datetime, y: Data_Source.Price });
+            }
+            else if (datetime == Trendline.x) {
+                about_tg.TAIEX_trend_charts_update([datetime, Data_Source.Price, true, true]);
+            }
+	    }else if (Status === 'unsyn') {
+	    	//unsyn collect datas
+    		if(TAIEXTrend_DataSet.length==0){
+                if (Data_Source.Time >= '90000') {
+                    TAIEXTrend_DataSet.push({
+                        x: datetime,
+                        y: Data_Source.Price,
+                        a: Data_Source.Ptr
+                    });
+                }
+    			return;
+    		}
+
+    		if (datetime > TAIEXTrend_DataSet[TAIEXTrend_DataSet.length - 1].x) {
+                    //TSEA OOTCA時間差別太大(現在時間)，過濾 
+                    if (datetime > TAIEXTrend_DataSet[TAIEXTrend_DataSet.length - 1].x + 600000) {
+                        if (cbID == 'TSEA' || cbID == 'OTCA') {
+                        }
+                        else {
+                            if (Data_Source.Ptr == parseInt(TAIEXTrend_DataSet[TAIEXTrend_DataSet.length - 1].a) + 1) {
+                                if (datetime < TAIEXTrend_DataSet[TAIEXTrend_DataSet.length - 1].x) {
+                                }
+                                else if (datetime == TAIEXTrend_DataSet[TAIEXTrend_DataSet.length - 1].x) {
+                                    TAIEXTrend_DataSet.pop();
+                                    TAIEXTrend_DataSet.push({
+                                        x: datetime,
+                                        y: Data_Source.Price,
+                                        a: Data_Source.Ptr,
+                                    });
+                                }
+                                else {
+                                    TAIEXTrend_DataSet.push({
+                                        x: datetime,
+                                        y: Data_Source.Price,
+                                        a: Data_Source.Ptr,
+                                    });
+                                }
+                            }
+                        }
+                    } else {
+                        TAIEXTrend_DataSet.push({
+                            x: datetime,
+                            y: Data_Source.Price,
+                            a: Data_Source.Ptr
+                        });
+                    }
+    		}else if (datetime == TAIEXTrend_DataSet[TAIEXTrend_DataSet.length - 1].x) {
+                TAIEXTrend_DataSet.pop();
+                TAIEXTrend_DataSet.push({
+                    x: datetime,
+                    y: Data_Source.Price,
+                    a: Data_Source.Ptr
+                });
+            }else{
+
+            }
+
+	    }
+	}
+
+	//畫走勢圖(成交量)
+	var TAIEX_TrendSize_DataSet = [];
+	var TAIEX_MarketSize = [];
+	var TAIEX_TrendSize_Sort = [];
+	var TAIEX_TrendSize_parentTick;
+	function TAIEX_TrendSize_setData(Status, Data_Source, datetime) {
+	    // console.log(Data_Source);
+	    TAIEX_MarketSize.push([Data_Source.Ptr, Data_Source.Time, Data_Source.Size, Data_Source.Price]);
+	    if (TAIEX_MarketSize[TAIEX_MarketSize.length - 1][1] < 90000) {
+	        TAIEX_MarketSize.pop().sort();
+	        if (TAIEX_MarketSize.length >= 2) {
+	            if (TAIEX_MarketSize[TAIEX_MarketSize.length - 1][0] == TAIEX_MarketSize[TAIEX_MarketSize.length - 2][0]) {
+	                TAIEX_MarketSize.pop();
+	            }
+	        }
+	    }
+	    if (Data_Source.Time < '133500') {
+	    	if(Status=='syn'){
+		    	// syn 時建立增加單點資料
+	            var index = about_tg.TAIEX_volume_charts.series[0].data.length - 1;
+	            var Trendline = about_tg.TAIEX_volume_charts.series[0].data[index];
+	            //輸出後續增加的資料
+		        //!!!! console.log('add point here! x='+datetime+', y='+Data_Source.Price);
+	            if (datetime > Trendline.x) {
+	            	console.log('addpoint for charts Data_Source.Ptr='+Data_Source.Ptr);
+	                //add
+	                if (TAIEX_TrendSize_Sort.length > 0) {
+	                    //重整後的第一筆
+	                    if (TAIEX_TrendSize_Sort[TAIEX_TrendSize_Sort.length - 1] + 1 == Data_Source.Ptr) {
+                            about_tg.TAIEX_volume_charts_addPoint({x: datetime, y: parent(TAIEX_TrendSize_parentTick) + Data_Source.Size})
+	                    }
+	                    else {
+	                        about_tg.TAIEX_volume_charts_addPoint({ x: datetime, y: Data_Source.Size });
+	                    }
+	                }
+	                else {
+		                about_tg.TAIEX_volume_charts_addPoint({x: datetime, y: Data_Source.Price});
+	                }
+	            }
+	            else {
+	                about_tg.TAIEX_volume_charts_update([datetime, parseInt(TAIEX_TrendSize_DataSet[TAIEX_TrendSize_DataSet.length - 1].y) + Data_Source.Size, true, true]);
+	            }
+
+	    	}else if(Status=='unsyn'){
+	    	//unsyn 時蒐集資料
+	            if (TAIEX_MarketSize.length >= 2) {
+	                if (TAIEX_MarketSize[TAIEX_MarketSize.length - 1][1] == TAIEX_MarketSize[TAIEX_MarketSize.length - 2][1]) {
+	                    TAIEX_TrendSize_parentTick = (parseInt(TAIEX_TrendSize_parentTick) + Data_Source.Size);
+	                    TAIEX_TrendSize_DataSet.pop();
+	                    TAIEX_TrendSize_DataSet.push({
+	                        x: datetime,
+	                        y: parseInt(TAIEX_TrendSize_parentTick),
+	                    });
+	                }
+	                else if (TAIEX_MarketSize[TAIEX_MarketSize.length - 1][1] < TAIEX_MarketSize[TAIEX_MarketSize.length - 2][1]) {
+	                }
+	                else {
+	                    TAIEX_TrendSize_DataSet.push({
+	                        x: datetime,
+	                        y: Data_Source.Size,
+	                    });
+	                    TAIEX_TrendSize_parentTick = (Data_Source.Size);
+	                    TAIEX_TrendSize_Sort.push([Data_Source.Ptr]);
+	                }
+	            }
+	            else {
+	                TAIEX_TrendSize_DataSet.push({
+	                    x: datetime,
+	                    y: parseInt(Data_Source.Size),
+	                });
+	                TAIEX_TrendSize_parentTick = (Data_Source.Size);
+	                TAIEX_TrendSize_Sort.push([Data_Source.Ptr]);
+	            }
+
+	    	}
+	    }
+	}
+
+
+
+    var TAIEXTrend_DataSet = [];
+    var topicS43Finish = false;
+
+	//訂閱 S_43
+	function cbgetSolaceDataS43(TopicObject_S43){
+	    /*這裡getSolacacheData 有加入一個 callback function ，可取代 cacheRequestCb()要cache完成後的callback function**/
+	    Solace.GetSolcacheData(TopicObject_S43 , function(requestID, cacheRequestResult, userObject){
+	        console.log('cache完成');
+	        try {
+	            var key;
+	            var subcodeName;
+	            for (key in solace.CacheReturnSubcode) {
+	                if (cacheRequestResult.subcode === solace.CacheReturnSubcode[key]) {
+	                    subcodeName = key;
+	                    break;
+	                }
+	            }
+	            if (subcodeName == "NO_DATA") { //NO_DATA沒訂閱成功會顯示
+	                console.log('無資料');
+	                //$.notify("NO_DATA: " + userObject.Topic, { globalPosition: "bottom left", className: 'warn', });
+	            }
+	            console.log("要cache完成 Subcode:" + subcodeName + " ,Topic:" + userObject.Topic);
+
+
+	        } catch (error) {
+	            console.error('cacheRequestCb ' + error.toString());
+            }
+		    if (userObject.Topic.indexOf("S_43") > -1) {
+		        topicS43Finish = true;
+			     //這裡將 S_43 完成標記為 true
+                 //初始化圖表
+                 about_tg.TAIEX_trend_charts_setData(TAIEXTrend_DataSet);
+                 //  TAIEX_trend_charts.series[0].setData(TAIEXTrend_DataSet, false);
+                 //  TAIEX_trend_charts.redraw();
+                 about_tg.TAIEX_volume_charts_setData(TAIEX_TrendSize_DataSet);
+			    //  TAIEX_volume_charts.series[0].setData(TAIEX_TrendSize_DataSet, false);
+			    //  TAIEX_volume_charts.redraw();
+		    }
+    	});
+	}
+	//大盤走勢圖資料顯示
+	var SizeNum = 0;
+	var Total_Size = 0;
+	var TAIEX_TrendSize_DataSet_High = [];
+	var MarketSize_Total = [];
+	function TAIEX_Trend_Content(Data_Source, YSDClose, Status) {
+	    var range, S43_High, S43_Low, S43_Open;
+	    TAIEX_TrendSize_DataSet_High.push(Data_Source.Price);
+	    MarketSize_Total.push(Data_Source.Size);
+	    if (Status == 'unsyn' && Data_Source.Time < '133000') {
+	        return;
+	    }
+	    S43_Open = (TAIEX_MarketSize.length > 0)?TAIEX_MarketSize[0][3]:0;
+	    range = (parseFloat(Data_Source.Price) - parseFloat(YSDClose)) / parseFloat(YSDClose) * 100;
+	    TAIEX_TrendSize_DataSet_High.sort(function (a, b) { return b - a; });//陣列排序，將最高的放在最前面
+	    S43_High = TAIEX_TrendSize_DataSet_High[0];
+	    TAIEX_TrendSize_DataSet_High.sort(function (a, b) { return a - b; });//陣列排序，將最低的放在最前面
+	    S43_Low = TAIEX_TrendSize_DataSet_High[0];
+	    //總量
+	    if (SizeNum == 0) {
+	        //將陣列TAIEX_TrendSize_DataSet_High的值相加放入SizeNum裡
+	        for (var i = 0; i <= MarketSize_Total.length - 1; i++) {
+	            Total_Size = Total_Size + MarketSize_Total[i];
+	        }
+	        SizeNum = (Total_Size);
+	    }
+	    else {
+	        SizeNum = (parseInt(SizeNum) + Data_Source.Size);
+        }
+        about_tg.TAIEX_trend_table_setData({
+            DealPrice: Data_Source.Price,
+            Movement: Math.abs(formatFloat((Data_Source.Price - parseFloat(YSDClose)), 2)),
+            Range: Math.abs(formatFloat(range, 2))+'%',
+            YSDClose: YSDClose,
+            CbOpen: S43_Open,
+            CbHigh: S43_High,
+            CbLow: S43_Low,
+            CbTotal: SizeNum
+        });
     }
-    Solace.GetSolcacheData(topicObject_S60);
-}
 
-//現股資訊-基本資料(S27)
-function SubjectInfoInitial() {
-    var TopicObject_S27 = Solace.CreateTopicObject('M0/S_27'); //上市
-    if (TopicObject_S27 != null) {
-        Solace.Unsubscribe(TopicObject_S27);
+    function testoutside(tg){
+        about_tg = tg;
+        console.log('outsite');
+        console.log(about_tg.componentFn())
     }
-    Solace.GetSolcacheData(TopicObject_S27);
-
-    var TopicObject_S27 = Solace.CreateTopicObject('M1/S_27'); //上櫃
-    if (TopicObject_S27 != null) {
-        Solace.Unsubscribe(TopicObject_S27);
-    }
-    Solace.GetSolcacheData(TopicObject_S27);
-}
-
-
-//即時報價
-function cbDynamic(ID) {
-    var topicObject_S61 = Solace.CreateTopicObject('M201/' + ID + '/S_61');
-    if (topicObject_S61 != null) {
-        Solace.Unsubscribe(topicObject_S61);
-    }
-    Solace.GetSolcacheData(topicObject_S61);
-}
-
-//測試取得S_27
-function cbgetSolaceDataS27(){
-    //console.log('*** cbgetSolaceDataS27(4)');
-    var MarketNo = '0';//test
-    var TopicObject_S27 = Solace.CreateTopicObject('M' + MarketNo + '/S_27');
-    //console.log('test'+TopicObject_S27);
-    if (TopicObject_S27 != null) {
-        Solace.Unsubscribe(TopicObject_S27);
-    }
-    Solace.GetSolcacheData(TopicObject_S27);
-}
-
-
-//--------------------------------------------------------------005--------------------------------------------------------------
-// $(function () {
-//     $(Solace).on(Solace.Events.OnConnected, function () {
-//     	console.log('connect to solace');
-//     	cbDynamic('18083');
-//         // SolaceInitial(); //基本資料        
-//         // SubjectInfoInitial(); //現股資訊-基本資料
-//         //SubjectInfoInitial_S36(); //現貨資訊 - 即時報價
-//         //initial();
-//         //DynamicInitial(); //回報資料
-//         //MySolace.SubscribeSocache("R201/SELF0082/O"); //註冊委託
-//         //MySolace.SubscribeSocache("R201/SELF0082/D"); //註冊委託
-//     });
-//     Solace.Connect();
-// }); 
