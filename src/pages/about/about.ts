@@ -11,6 +11,7 @@ declare var endDate;
 declare var beingDate;
 declare var Solace;
 declare var ng_p_tg;
+declare var reset_TAIEX_Trend_Content_Data;
 
 HighchartsMore(Highcharts);
 SolidGauge(Highcharts);
@@ -113,6 +114,7 @@ export class AboutPage {
   }
 
   initCharts(){
+    reset_TAIEX_Trend_Content_Data();
     this.DealPrice ='-';
     this.Movement ='-';
     this.Range ='-';

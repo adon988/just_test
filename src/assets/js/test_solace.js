@@ -399,6 +399,7 @@ function formatFloat(num, pos) {
             //console.log("LOGIN_FAILURE");
             try{ng_p_tg.connnectToSolace=false}catch (error) {}
             Solace.connectStatus=false;
+            reset_TAIEX_Trend_Content_Data();
             $(".status").prepend("<br/>LOGIN_FAILURE");
         } else if (event.sessionEventCode === solace.SessionEventCode.CONNECTING) {
             ////ns.utils.prependToConsole.log("Connecting...");
@@ -412,12 +413,14 @@ function formatFloat(num, pos) {
             try{ng_p_tg.connnectToSolace=false}catch (error) {}
             try{ng_p_tg.statusDisconnect()}catch (error) {}
             Solace.connectStatus=false;
+            reset_TAIEX_Trend_Content_Data();
             $(".status").prepend("<br/>DISCONNECTED");
         } else {
             //ns.handle_failure("Session failure!", false);
             //console.log("Session failure!");
             try{ng_p_tg.connnectToSolace=false}catch (error) {}
             Solace.connectStatus=false;
+            reset_TAIEX_Trend_Content_Data();
             $(".status").prepend("<br/>Session failure!");
         }
     }
@@ -642,7 +645,15 @@ function formatFloat(num, pos) {
 	var SizeNum = 0;
 	var Total_Size = 0;
 	var TAIEX_TrendSize_DataSet_High = [];
-	var MarketSize_Total = [];
+    var MarketSize_Total = [];
+    function reset_TAIEX_Trend_Content_Data(){
+        topicS43Finish=false;
+        SizeNum = 0;
+        Total_Size = 0;
+        TAIEX_TrendSize_DataSet_High = [];
+        MarketSize_Total = [];
+        return;
+    }
 	function TAIEX_Trend_Content(Data_Source, YSDClose, Status) {
 	    var range, S43_High, S43_Low, S43_Open;
 	    TAIEX_TrendSize_DataSet_High.push(Data_Source.Price);
@@ -658,16 +669,12 @@ function formatFloat(num, pos) {
 	    S43_Low = TAIEX_TrendSize_DataSet_High[0];
         //總量
         // if disconnect - set Sizenum to 0, this will re-caculate when re-connection
-        if(Solace.connectStatus==false){
-            SizeNum = 0;
-            return;
-        }
 	    if (SizeNum == 0) {
-	        //將陣列TAIEX_TrendSize_DataSet_High的值相加放入SizeNum裡
+            //將陣列TAIEX_TrendSize_DataSet_High的值相加放入SizeNum裡
 	        for (var i = 0; i <= MarketSize_Total.length - 1; i++) {
 	            Total_Size = Total_Size + MarketSize_Total[i];
 	        }
-	        SizeNum = (Total_Size);
+            SizeNum = (Total_Size);
 	    }
 	    else {
 	        SizeNum = (parseInt(SizeNum) + Data_Source.Size);
