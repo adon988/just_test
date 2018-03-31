@@ -40,7 +40,18 @@ export class HomePage {
     $(Solace).on(Solace.Events.OnConnected, function () {});
     Solace.Connect();
   }
-  
+
+  statusDisconnect(){
+    if(Solace.connectStatus==false){
+      let alert = this.alertCtrl.create({
+        title: '通知',
+        subTitle: '連線尚未完成',
+        buttons: ['關閉']
+      });
+      alert.present();
+      return;
+    }
+  }
 
   S61_number = '45511';
   getData_S61() {

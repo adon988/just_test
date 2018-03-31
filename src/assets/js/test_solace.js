@@ -378,43 +378,46 @@ function formatFloat(num, pos) {
     this.SessionEventCb = function (session, event) {
         if (event.sessionEventCode === solace.SessionEventCode.UP_NOTICE) {
             //console.log("UP_NOTICE");
+            try{ng_p_tg.connnectToSolace=true}catch (error) {}
+            Solace.connectStatus=true;
             $(".status").prepend("<br/>UP_NOTICE");
             //ns.handle_sessionConnected();
         } else if (event.sessionEventCode === solace.SessionEventCode.SUBSCRIPTION_OK) {
             //ns.handle_subscriptionOperationSucceeded();
             //console.log("SUBSCRIPTION_OK");
             try{ng_p_tg.connnectToSolace=true}catch (error) {}
-            this.connectStatus=true;
+            Solace.connectStatus=true;
             $(".status").prepend("<br/>SUBSCRIPTION_OK");
         } else if (event.sessionEventCode === solace.SessionEventCode.SUBSCRIPTION_ERROR) {
             //ns.handle_failure("Failed to add subscription", true);
             //console.log("SUBSCRIPTION_ERROR");
             try{ng_p_tg.connnectToSolace=true}catch (error) {}
-            this.connectStatus=true;
+            Solace.connectStatus=true;
             $(".status").prepend("<br/>SUBSCRIPTION_ER");
         } else if (event.sessionEventCode === solace.SessionEventCode.LOGIN_FAILURE) {
             //ns.handle_failure("Failed to login to appliance:" + event.infoStr, true);
             //console.log("LOGIN_FAILURE");
             try{ng_p_tg.connnectToSolace=false}catch (error) {}
-            this.connectStatus=false;
+            Solace.connectStatus=false;
             $(".status").prepend("<br/>LOGIN_FAILURE");
         } else if (event.sessionEventCode === solace.SessionEventCode.CONNECTING) {
             ////ns.utils.prependToConsole.log("Connecting...");
             //console.log("CONNECTING");
-            try{ng_p_tg.connnectToSolace=true}catch (error) {}
-            this.connectStatus=true;
+            // try{ng_p_tg.connnectToSolace=true}catch (error) {}
+            // Solace.connectStatus=true;
             $(".status").prepend("<br/>CONNECTING");
         } else if (event.sessionEventCode === solace.SessionEventCode.DISCONNECTED) {
             //ns.handle_failure("Session is disconnected", false);
             //console.log("DISCONNECTED");
             try{ng_p_tg.connnectToSolace=false}catch (error) {}
-            this.connectStatus=false;
+            try{ng_p_tg.statusDisconnect()}catch (error) {}
+            Solace.connectStatus=false;
             $(".status").prepend("<br/>DISCONNECTED");
         } else {
             //ns.handle_failure("Session failure!", false);
             //console.log("Session failure!");
             try{ng_p_tg.connnectToSolace=false}catch (error) {}
-            this.connectStatus=false;
+            Solace.connectStatus=false;
             $(".status").prepend("<br/>Session failure!");
         }
     }
@@ -651,7 +654,12 @@ function formatFloat(num, pos) {
 	    S43_High = TAIEX_TrendSize_DataSet_High[0];
 	    TAIEX_TrendSize_DataSet_High.sort(function (a, b) { return a - b; });//陣列排序，將最低的放在最前面
 	    S43_Low = TAIEX_TrendSize_DataSet_High[0];
-	    //總量
+        //總量
+        // if disconnect - set Sizenum to 0, this will re-caculate when re-connection
+        if(Solace.connectStatus==false){
+            SizeNum = 0;
+            return;
+        }
 	    if (SizeNum == 0) {
 	        //將陣列TAIEX_TrendSize_DataSet_High的值相加放入SizeNum裡
 	        for (var i = 0; i <= MarketSize_Total.length - 1; i++) {
