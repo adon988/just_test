@@ -111,9 +111,10 @@ function formatFloat(num, pos) {
                 datetime = datetime + 28800000;
                 if (topicS43Finish) {
                     if (CID == WarrID) {
-                        //畫走勢圖
-                        TAIEX_Trend_setData('syn', s43, datetime, WarrID,'taiex_trend_charts');
-                        //畫走勢圖(成交量)
+                        // console.log('get point data');
+                        // //畫走勢圖
+                        TAIEX_Trend_setData('syn', s43, datetime, WarrID);
+                        // //畫走勢圖(成交量)
                         TAIEX_TrendSize_setData('syn', s43, datetime);
                         if (WarrID === 'OTCA' || WarrID === 'TSEA') {
                             //(3) 大盤最後走勢總計資料表
@@ -123,9 +124,9 @@ function formatFloat(num, pos) {
                 }
                 else {
                     if (CID == WarrID) {
-                        //畫走勢圖
-                        TAIEX_Trend_setData('unsyn', s43, datetime, WarrID,'taiex_trend_charts');
-                        //畫走勢圖(成交量)
+                        // //畫走勢圖
+                        TAIEX_Trend_setData('unsyn', s43, datetime, WarrID);
+                        // //畫走勢圖(成交量)
                         TAIEX_TrendSize_setData('unsyn', s43, datetime);
                         if (WarrID === 'OTCA' || WarrID === 'TSEA') {
                             //(3) 大盤最後走勢總計資料表
@@ -422,7 +423,7 @@ function formatFloat(num, pos) {
 
 	//畫走勢圖
 	var Wdata_High = [];
-	function TAIEX_Trend_setData(Status, Data_Source, datetime, cbID, chart_target) {
+	function TAIEX_Trend_setData(Status, Data_Source, datetime, cbID) {
 		
 	    Wdata_High.push(Data_Source.Price);
 	    
@@ -436,14 +437,16 @@ function formatFloat(num, pos) {
 	
 	    if (Data_Source.Time >= '133500') { return; }
 	    if (Status === 'syn') {
-	    	//syn add single point
-            var Trendline = about_tg.TAIEX_trend_charts_Target.series[0].data[index];
-	        console.log('add point here! x='+datetime+', y='+Data_Source.Price);
+            //syn add single point
+            var index = about_tg.TAIEX_trend_charts.series[0].data.length - 1;
+
+            var Trendline = about_tg.TAIEX_trend_charts.series[0].data[index];
+	        console.log('!!!!! add point here! x='+datetime+', y='+Data_Source.Price);
             if (datetime > Trendline.x) {
                 about_tg.TAIEX_trend_charts_addPoint({ x: datetime, y: Data_Source.Price });
             }
             else if (datetime == Trendline.x) {
-                about_tg.TAIEX_trend_charts_update([datetime, Data_Source.Price, true, true]);
+                about_tg.TAIEX_trend_charts_update([datetime, Data_Source.Price, true, true],index);
             }
 	    }else if (Status === 'unsyn') {
 	    	//unsyn collect datas
@@ -527,24 +530,29 @@ function formatFloat(num, pos) {
 	            var index = about_tg.TAIEX_volume_charts.series[0].data.length - 1;
 	            var Trendline = about_tg.TAIEX_volume_charts.series[0].data[index];
 	            //輸出後續增加的資料
-		        //!!!! console.log('add point here! x='+datetime+', y='+Data_Source.Price);
-	            if (datetime > Trendline.x) {
-	            	console.log('addpoint for charts Data_Source.Ptr='+Data_Source.Ptr);
+                // console.log('!!!! add point here! x='+datetime+', y='+Data_Source.Price);
+                // console.log(datetime+','+Trendline.x);
+                if (datetime > Trendline.x) {
 	                //add
 	                if (TAIEX_TrendSize_Sort.length > 0) {
+                        // console.log('!!!!! mark1');
 	                    //重整後的第一筆
 	                    if (TAIEX_TrendSize_Sort[TAIEX_TrendSize_Sort.length - 1] + 1 == Data_Source.Ptr) {
+                            // console.log('!!!!! mark2');
                             about_tg.TAIEX_volume_charts_addPoint({x: datetime, y: parent(TAIEX_TrendSize_parentTick) + Data_Source.Size})
 	                    }
 	                    else {
+                            // console.log('!!!!! mark3');
 	                        about_tg.TAIEX_volume_charts_addPoint({ x: datetime, y: Data_Source.Size });
 	                    }
 	                }
 	                else {
+                        // console.log('!!!!! mark4');
 		                about_tg.TAIEX_volume_charts_addPoint({x: datetime, y: Data_Source.Price});
 	                }
 	            }
 	            else {
+                    // console.log('!!!!! mark5');
 	                about_tg.TAIEX_volume_charts_update([datetime, parseInt(TAIEX_TrendSize_DataSet[TAIEX_TrendSize_DataSet.length - 1].y) + Data_Source.Size, true, true]);
 	            }
 
@@ -634,7 +642,7 @@ function formatFloat(num, pos) {
 	    var range, S43_High, S43_Low, S43_Open;
 	    TAIEX_TrendSize_DataSet_High.push(Data_Source.Price);
 	    MarketSize_Total.push(Data_Source.Size);
-	    if (Status == 'unsyn' && Data_Source.Time < '133000') {
+	    if (topicS43Finish==false && Data_Source.Time < '133000') {
 	        return;
 	    }
 	    S43_Open = (TAIEX_MarketSize.length > 0)?TAIEX_MarketSize[0][3]:0;

@@ -64,9 +64,6 @@ export class AboutPage {
   }
 
   //TAIEX_trend
-  TAIEX_trend_charts_Target(){
-    return this.TAIEX_trend_charts;
-  }
   TAIEX_trend_charts_setData(data){
     this.TAIEX_trend_charts.series[0].setData(data, false);
     this.TAIEX_trend_charts.redraw();
@@ -74,15 +71,11 @@ export class AboutPage {
   TAIEX_trend_charts_addPoint(data){
     this.TAIEX_trend_charts.series[0].addPoint(data);
   }
-  TAIEX_trend_charts_update(data){
-    var index =this.TAIEX_trend_charts.series[0].data.length - 1;
+  TAIEX_trend_charts_update(data, index){
     this.TAIEX_trend_charts.series[0].data[index].update(data);
   }
 
   //TAIEX_volume
-  TAIEX_volume_charts_Target(){
-    return this.TAIEX_volume_charts;
-  }
   TAIEX_volume_charts_setData(data){
     this.TAIEX_volume_charts.series[0].setData(data, false);
     this.TAIEX_volume_charts.redraw();
