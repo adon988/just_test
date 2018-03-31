@@ -440,6 +440,7 @@ function formatFloat(num, pos) {
 	
 	    if (Data_Source.Time >= '133500') { return; }
 	    if (Status === 'syn') {
+            if(Solace.connectStatus==false){return;}
             //syn add single point
             var index = about_tg.TAIEX_trend_charts.series[0].data.length - 1;
 
@@ -529,6 +530,7 @@ function formatFloat(num, pos) {
 	    }
 	    if (Data_Source.Time < '133500') {
 	    	if(Status=='syn'){
+                if(Solace.connectStatus==false){return;}
 		    	// syn 時建立增加單點資料
 	            var index = about_tg.TAIEX_volume_charts.series[0].data.length - 1;
 	            var Trendline = about_tg.TAIEX_volume_charts.series[0].data[index];

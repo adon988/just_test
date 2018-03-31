@@ -113,6 +113,15 @@ export class AboutPage {
   }
 
   initCharts(){
+    this.DealPrice ='-';
+    this.Movement ='-';
+    this.Range ='-';
+    this.YSDClose ='-';
+    this.CbOpen ='-';
+    this.CbHigh ='-';
+    this.CbLow ='-';
+    this.CbTotal ='-';
+
     this.fn = {
       tooltip:{
         shared: true,
