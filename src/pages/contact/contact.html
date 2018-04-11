@@ -1,17 +1,35 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      Contact
+      登入
     </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    <ion-list-header>Follow us</ion-list-header>
-    <ion-item>
-      <ion-icon name="ionic" item-start></ion-icon>
-      Follow
-    </ion-item>
-  </ion-list>
+    <ion-list>
+        <ion-item>
+          <ion-label stacked>帳號</ion-label>
+          <ion-input type="text" [(ngModel)]="id"></ion-input>
+        </ion-item>
+      
+        <ion-item>
+          <ion-label stacked>密碼</ion-label>
+          <ion-input type="password" [(ngModel)]="password"></ion-input>
+        </ion-item>
+      
+      </ion-list>
+      <div padding>
+          <button ion-button full (click)="Login()">登入</button>
+      </div>
+      <div *ngIf="check_results" padding>
+        <p>{{check_results.Msg}}</p>
+        <p *ngIf="check_results.ID">ID:{{check_results.ID}}</p>
+        <p *ngIf="check_results.Acno">Acno:{{check_results.Acno}}</p>
+        <p *ngIf="check_results.Name">姓名:{{check_results.Name}}</p>
+        <p *ngIf="check_results.Unit">Unit:{{check_results.Unit}}</p>
+        <p *ngIf="check_results.CAStatus">憑證:{{check_results.CAStatus}}</p>
+        <p *ngIf="ip_data">IP:{{ip_data}}</p>
+        <p>狀態代碼:{{check_results.Status}}</p>
+      </div>
 </ion-content>
