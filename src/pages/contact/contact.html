@@ -7,6 +7,9 @@
 </ion-header>
 
 <ion-content>
+    <div padding>
+        <a href="https://www.google.com/">本頁開啟google視窗</a>
+    </div>
     <ion-list>
         <ion-item>
           <ion-label stacked>帳號</ion-label>
@@ -21,6 +24,7 @@
       </ion-list>
       <div padding>
           <button ion-button full (click)="Login()">登入</button>
+          {{deviceUserAgent}}
       </div>
       <div *ngIf="check_results" padding>
         <p>{{check_results.Msg}}</p>
