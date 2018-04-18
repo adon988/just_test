@@ -120,9 +120,9 @@ function pwdBrowserCert() {
 }
 
 function _retSelectSignerOnClicked_PhoneWeb(code, msg, token, data) {
-    console.log("_retSelectSignerOnClicked_PhoneWeb" + code);
-
-    console.log({"note":"retselectsigner" ,"code":code, "msg": msg, "token": token, "data": data});
+    
+    ng_p_tg._retSelectSignerOnClicked_PhoneWeb(code, msg, token, data);
+    return;
     var CertInfo = "";
 
     if (data != "") {

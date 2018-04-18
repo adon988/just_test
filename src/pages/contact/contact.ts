@@ -1,16 +1,23 @@
 import { Component } from '@angular/core';
-import { NavController, LoadingController } from 'ionic-angular';
-
+import { NavController, LoadingController, AlertController } from 'ionic-angular';
+import { InAppBrowser } from '@ionic-native/in-app-browser';
 declare var $;
 declare var AllCertInfo;
 declare var checkBrowserCert_PhoneWeb;
+declare var ng_p_tg;
+declare var twcaLib;
+
 @Component({
   selector: 'page-contact',
   templateUrl: 'contact.html'
 })
 export class ContactPage {
 
-  constructor(public navCtrl: NavController, public loadingCtrl: LoadingController) {
+  constructor(private iab: InAppBrowser, public navCtrl: NavController, public loadingCtrl: LoadingController, private alertCtrl: AlertController) {
+  }
+
+  openBrowser(){
+    const browser = this.iab.create('https://google.com/');
   }
   
   //Default Value
@@ -66,90 +73,63 @@ export class ContactPage {
   }//Login()
 
   
-  deviceUserAgent='----';
+  deviceUserAgent='';
   //Certificate Authority
   certificate_authority(obj){
     let ng2 = this;
-    console.log({ 
-      "note": "1",
-      "idno": obj.id,
-      "trantype": "78", 
-      "certtype": AllCertInfo.certtype, //AllCertInfo.certtype
-      "cn": obj.id,
-      "certid": AllCertInfo.sn,//AllCertInfo.sn 
-      "b64p7sig": AllCertInfo.verify_P7, //AllCertInfo.verify_P7
-      "rawdata": obj.rawdata, 
-      "clientip":obj.ip, 
-      "source": "web"});
     //Agent check - Mobile Web
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
       ng2.deviceUserAgent = 'Agent: mobile web'+navigator.userAgent;
         let Url_data = "http://dev-ex.capital.com.tw/ExtProduct/Program/CBAS/Index_20180102.html?ID=" + obj.id + "&Acno=" + obj.acno + "&Token=" + obj.token;
-        
-        checkBrowserCert_PhoneWeb(obj.id, obj.token, Url_data);
-
-
-        console.log({ 
-          "note":"2",
-          "idno": obj.id,
-          "trantype": "78", 
-          "certtype": AllCertInfo.certtype, //AllCertInfo.certtype
-          "cn": obj.id,
-          "certid": AllCertInfo.sn,//AllCertInfo.sn 
-          "b64p7sig": AllCertInfo.verify_P7, //AllCertInfo.verify_P7
-          "rawdata": obj.rawdata, 
-          "clientip":obj.ip, 
-          "source": "web"});
-      // $.ajax({
-      //     url: ng2.CBAS_URL + 'S0001.ashx',
-      //     type: "POST",
-      //     async: true,
-      //     data: { 
-      //               "idno": obj.id,
-      //               "trantype": "78", 
-      //               "certtype": AllCertInfo.certtype, //AllCertInfo.certtype
-      //               "cn": obj.id,
-      //               "certid": AllCertInfo.sn,//AllCertInfo.sn 
-      //               "b64p7sig": AllCertInfo.verify_P7, //AllCertInfo.verify_P7
-      //               "rawdata": obj.rawdata, 
-      //               "clientip":obj.ip, 
-      //               "source": "web"},
-      //     success: function (data) {
-      //         console.log('完成');
-      //         console.log(data);  
-            // //alert(data);
-              // var ary = data.split(":")[1].split(",");
-              // var ary_msg = data.split(":")[2].split("}");
-              // if (ary[0] == '"000"') {
-              //     //alert("PhoneWeb_SECCESS");
-              //     // window.location.href = urlPortal + ID.toUpperCase() + "&Acno=" + Acno + "&Token=" + Token;
-              //     console.log('phoneweb success');
-              // }
-              // else {
-              //     console.log('other success');
-              //     // if (Source == "ios" || Source == "android") {
-              //     //     alert(ary_msg[0]);
-              //     // }
-              //     // else {
-              //     //     alert(ary_msg[0]);
-              //     // }
-              // }
-          // },
-      //     error: function (xhr) {
-
-      //         console.log('error happened');
-      //         console.log(xhr);
-      //         // if (Source == "ios" || Source == "android") {
-      //         //     SystemMessage(xhr.statusText);
-      //         // }
-      //         // else {
-      //         //     alert(xhr.statusText);
-      //         // }
-      //     }
-      // });
+        ng2.checkBrowserCert_PhoneWeb(obj.id, obj.token, Url_data);
     }else{
       ng2.deviceUserAgent = 'Agent: app'+navigator.userAgent;
     }
   }//certificate_authority()
+
+  checkBrowserCert_PhoneWeb(id, token, url):void{
+    var oFilter = "//S_CN=" + AllCertInfo.cn + ",S_OU=The Capital Group,S_OU=RA-TheCapital,S_O=Certification Service Provider,S_O=TaiCA Secure CA,S_C=TW//";
+    var dwFlags = 0x04 | 0x08 | 0x00001000;
+    var userPin = null;
+    twcaLib.SelectSignerEx(oFilter, "", "", userPin, "", dwFlags, 0, null, "_retSelectSignerOnClicked_PhoneWeb");
+  }
   
+  _retSelectSignerOnClicked_PhoneWeb(code, msg, token, data):void {
+    var Alertmessage;
+    switch(code){
+      case "5005":
+        Alertmessage="參數錯誤";
+        break;
+      case "5010":
+        Alertmessage="目前此裝置無有效TWID憑證，將導引到TWID憑證APP作業，若您尚未下載TWID APP，將自動導至Store/Play商店，請點選TWID APP進行安裝即可，並請於安裝完成後，關閉TWID APP，回到CBAS交易系統頁面進行後續操作，謝謝。"+code+','+msg+','+token+','+data;
+        break;
+        case "5070":
+          Alertmessage="已取消";//使用者按下取消
+          break;
+        case "5071":
+          Alertmessage="憑證錯誤";//憑證密碼錯誤
+          break;
+        case "5112":
+          Alertmessage="讀取憑證失敗";
+          break;
+        case "5001":
+          Alertmessage="一般錯誤";
+          break;
+    }
+
+    if(Alertmessage!=''){
+      let alert = this.alertCtrl.create({
+        title: '通知',
+        subTitle: Alertmessage,
+        buttons: ['關閉']
+      });
+      alert.present();
+      return;
+    }
+
+  }
+  ionViewWillEnter(){
+    ng_p_tg = this;
+    console.log('enter contact');
+  }
 }
