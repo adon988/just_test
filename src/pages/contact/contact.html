@@ -36,4 +36,19 @@
         <p *ngIf="ip_data">IP:{{ip_data}}</p>
         <p>狀態代碼:{{check_results.Status}}</p>
       </div>
+      <div>
+          <!--正式-->
+          <!--https://goplus.capital.com.tw/CapitalCA/login.aspx-->
+          <!--測試-->
+          <!--https://dev-goplus.capital.com.tw/CapitalCA/login.aspx-->
+          <form action="https://dev-goplus.capital.com.tw/CapitalCA/login.aspx" method="post" name="form1" id="form1">
+            <input type="text" name="idno" id="idno" [(ngModel)]="CAForm.idno" />
+            <input type="text" name="token" id="token" [(ngModel)]="CAForm.token"  />
+            <input type="text" name="backurl" id="backurl" [(ngModel)]="CAForm.backurl"  />
+
+            <div padding>
+              <button ion-button full (click)="submitForm()">取得驗證</button>
+            </div>
+          </form>
+      </div>
 </ion-content>

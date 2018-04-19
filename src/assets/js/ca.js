@@ -66,8 +66,6 @@ function _retGetVersion(code, msg, token, data) {
 var checkTestVar=0;
 //檢查有無憑證function
 function checkBrowserCert_PhoneWeb(id, token, url) {
-    console.log('checkTestVar is '+checkTestVar);
-    console.log("checkBrowserCert_PhoneWeb ： id = " + id + ",token = " + token + ", url = " + url);
     //穿透使用開始↓檢查有無登入權限，並將資訊寫入session
     OtherDomain.idno = id;
     OtherDomain.token = token;
@@ -103,11 +101,7 @@ function pwdBrowserCert() {
     var errCode = -1;
     //暫時註解↓
     var oFilter = "//S_CN=" + AllCertInfo.cn + ",S_OU=The Capital Group,S_OU=RA-TheCapital,S_O=Certification Service Provider,S_O=TaiCA Secure CA,S_C=TW//";     //正式環境用
-    //testing 2016/11/12
-    //var oFilter = "//S_C=TW//";
-    //testing
-    //console.log(AllCertInfo.cn);
-    //var oFilter = "//S_CN=" + AllCertInfo.cn + ",S_OU=The Capital Group,S_OU=RA-TheCapitalT,S_O=Certificate Service Provider - Evaluation Only,S_O=TaiCA Secure CA - Evaluation Only,S_C=TW//";   //測試環境用
+    //測試環境用
     var oPassword = "";
     var oIsPasswordNull = "";
     var dDwFlagCheckCert = "0x00000000";
@@ -120,107 +114,7 @@ function pwdBrowserCert() {
 }
 
 function _retSelectSignerOnClicked_PhoneWeb(code, msg, token, data) {
-    
     ng_p_tg._retSelectSignerOnClicked_PhoneWeb(code, msg, token, data);
-    return;
-    var CertInfo = "";
-
-    if (data != "") {
-        data = JSON.parse(data);
-    }
-    // var oErrCode = $f("SelectSigner_errCode");
-
-
-    if (code == "5005") {
-        //參數錯誤
-    }
-    if (code == "5010") {  
-        console.log('無有效TWID憑證');      
-        var fn_formatdiv = function (callback) {
-            console.log("目前此裝置無有效TWID憑證，將導引到TWID憑證APP作業，若您尚未下載TWID APP，" +
-                 "將自動導至Store/Play商店，請點選TWID APP進行安裝即可，並請於安裝完成後，" +
-                 "關閉TWID APP，回到CBAS交易系統頁面進行後續操作，謝謝。")
-            var formatdiv = '';
-            formatdiv += '<form action="https://goplus.capital.com.tw/CapitalCA/login.aspx" method="post" name="form1" id="form1">';  //正式環境
-            //formatdiv += '<form action="https://dev-goplus.capital.com.tw/CapitalCA/login.aspx" method="post" name="form1" id="form1">';  //測試環境
-            formatdiv += '<input type="hidden" name="idno" id="idno" value="' + OtherDomain.idno + '" />';
-            formatdiv += '<input type="hidden" name="token" id="token" value="' + OtherDomain.token + '" />';
-            formatdiv += '<input type="hidden" name="backurl" id="backurl" value="' + OtherDomain.backurl + '" />';
-            //formatdiv += '<input type="submit" value="Send data">';
-            formatdiv += '</form>';
-            $("body").append(formatdiv);
-            callback();
-        };
-        var fn_submit = function () {
-            $('#form1').submit();
-        };
-        fn_formatdiv(fn_submit);
-
-        //OtherDomain.idno = id;
-        //OtherDomain.token = token;
-        //OtherDomain.backurl = url;
-    }
-    if (code == "5070") {
-        //使用者按下取消
-        return false;
-    }
-    if (code == "5071") {
-        //憑證密碼錯誤
-        console.log("憑證匯入密碼錯誤")
-        return false;
-    }
-    if (code == "5112") {
-        //讀取憑證失敗
-    }
-    if (code == "5001") {
-        //一般錯誤
-    }
-
-    for (var key in data) {
-        if (code = "0") {
-            switch (key) {
-                case "sn":
-                    AllCertInfo.sn = data[key];
-                    if (data[key].length <= '8') {
-                        AllCertInfo.certtype = 'E';
-                    }
-                    else {
-                        AllCertInfo.certtype = 'C';
-                    }
-                    break;
-                case "cn":
-                    AllCertInfo.cn = data[key];
-                    break;
-                case "ntb":
-                    AllCertInfo.ntb = data[key];
-                    break;
-                case "nta":
-                    AllCertInfo.nta = data[key];
-                    break;
-                case "issdn":
-                    AllCertInfo.issdn = data[key];
-                    break;
-                case "subdn":
-                    AllCertInfo.subdn = data[key];
-                    break;
-                case "certfinger":
-                    AllCertInfo.certfinger = data[key];
-                    break;
-                case "certb64":
-                    AllCertInfo.certb64 = data[key];
-                    break;
-                default:
-                    break;
-            }
-        }
-        CertInfo += key + ": " + data[key] + "\n";
-    }
-
-
-
-    if (code == "0") {
-        btnSignPkcs7OnClick_PhoneWeb();
-    }
 }
 
 
