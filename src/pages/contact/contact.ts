@@ -19,6 +19,50 @@ export class ContactPage {
   constructor(private ContactService: ContactService, private iab: InAppBrowser, public navCtrl: NavController, public loadingCtrl: LoadingController, private alertCtrl: AlertController) {
   }
 
+  crateIframe = (function(){
+      let iframe;
+      return function(){
+          if(iframe){
+              return iframe;
+          }else{
+              iframe = document.createElement('iframe');
+              iframe.style.display = 'none';
+              $('body').append(iframe);
+              return iframe;
+          }
+      }
+  }
+  )();
+
+
+  AndroidOpenApp(){
+    let ng2 = this;
+    var loadDateTime = Date.now();
+    ng2.iab.create("twitter://post?message=hello%20world%23thisisyourhashtag.");
+    setTimeout(function () {
+      var timeOutDateTime = Date.now();
+      if(timeOutDateTime - loadDateTime < 1000){
+        ng2.iab.create('https://itunes.apple.com/tw/app/twid-tou-zi-ren-xing-dong-wang/id971043141');
+      }
+    }, 25);
+  }
+  openApp(){
+    var loadDateTime = Date.now();
+    let ng2 = this;
+    
+    setTimeout(function () {
+      var timeOutDateTime = Date.now();
+      if(timeOutDateTime - loadDateTime < 1000){
+        ng2.iab.create('https://itunes.apple.com/tw/app/twid-tou-zi-ren-xing-dong-wang/id971043141');
+      }
+    }, 25);
+    ng2.iab.create('twitter://post?message=hello%20world%23thisisyourhashtag.');
+  }
+
+  getApp(){
+    
+  }
+
 
   openBrowser(){
     const browser = this.iab.create('https://google.com/');
