@@ -8,6 +8,8 @@ declare var AllCertInfo;
 declare var checkBrowserCert_PhoneWeb;
 declare var ng_p_tg;
 declare var twcaLib;
+declare var window;
+declare var document;
 
 @Component({
   selector: 'page-contact',
@@ -19,48 +21,56 @@ export class ContactPage {
   constructor(private ContactService: ContactService, private iab: InAppBrowser, public navCtrl: NavController, public loadingCtrl: LoadingController, private alertCtrl: AlertController) {
   }
 
+
+  AndroidOpenApp(){
+    let ng2 = this;
+    var before = new Date().valueOf();
+    setTimeout(function(){
+      var after = new Date().valueOf();
+      if(after - before > 200){ return; }
+      window.location = ('https://play.google.com/store/apps/details?id=com.twitter.android');
+    },50);  
+    window.location = ("twitter://post?message=hello%20world");
+  }
+  iOSOpenApp(){
+    var loadDateTime = Date.now();
+    let ng2 = this;
+    setTimeout(function () {
+        window.location = ('https://itunes.apple.com/tw/app/twitter/id333903271?mt=8');
+    }, 2000);
+    window.location = ('twitter://post?message=hello%20world');
+  }
+
   crateIframe = (function(){
       let iframe;
-      return function(){
+      return function(obj){
+          var timer  = setTimeout(function(){
+            window.location=obj.store_url;
+          },1000);
+          
           if(iframe){
-              return iframe;
+            iframe.onload = function(){
+              clearTimeout(timer);
+            }
+            iframe.src=obj.url;
           }else{
-              iframe = document.createElement('iframe');
-              iframe.style.display = 'none';
-              $('body').append(iframe);
-              return iframe;
+            iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.onload = function(){
+              clearTimeout(timer);
+            }
+            iframe.src=obj.url;
+            document.body.appendChild(iframe);
           }
       }
   }
   )();
-
-
-  AndroidOpenApp(){
-    let ng2 = this;
-    var loadDateTime = Date.now();
-    ng2.iab.create("twitter://post?message=hello%20world%23thisisyourhashtag.");
-    setTimeout(function () {
-      var timeOutDateTime = Date.now();
-      if(timeOutDateTime - loadDateTime < 1000){
-        ng2.iab.create('https://itunes.apple.com/tw/app/twid-tou-zi-ren-xing-dong-wang/id971043141');
-      }
-    }, 25);
-  }
-  openApp(){
-    var loadDateTime = Date.now();
-    let ng2 = this;
-    
-    setTimeout(function () {
-      var timeOutDateTime = Date.now();
-      if(timeOutDateTime - loadDateTime < 1000){
-        ng2.iab.create('https://itunes.apple.com/tw/app/twid-tou-zi-ren-xing-dong-wang/id971043141');
-      }
-    }, 25);
-    ng2.iab.create('twitter://post?message=hello%20world%23thisisyourhashtag.');
-  }
-
-  getApp(){
-    
+  
+  WinphoneOpenApp(){
+      var iframe = this.crateIframe({
+        url:"twitter://post?message=hello%20world",
+        store_url:"https://play.google.com/store/apps/details?id=com.twitter.android"
+      });
   }
 
 
